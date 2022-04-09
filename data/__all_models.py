@@ -1,2 +1,2 @@
-import users
-import news
+from . import users
+from . import news
