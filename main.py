@@ -1,18 +1,23 @@
 from flask import Flask, render_template, redirect
-from flask_login import LoginManager, current_user, login_user, login_required, logout_user
-from data import db_session
+from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_restful import Api
+from data import db_session, user_api, user_resource
 from data.users import User
 from data.news import News
 from forms.user import RegisterForm, LoginForm
 
 app = Flask(__name__)
+api = Api(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 login_manager = LoginManager()
 login_manager.init_app(app)
+api.add_resource(user_resource.UsersListResource, '/api/v2/users')
+api.add_resource(user_resource.UsersResource, '/api/v2/users/<int:user_id>')
 
 
 def main():
     db_session.global_init("db/astro-project.db")
+    app.register_blueprint(user_api.blueprint)
     app.run(port=8080, host='127.0.0.1')
 
 
