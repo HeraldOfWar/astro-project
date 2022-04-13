@@ -1,5 +1,5 @@
 from flask import jsonify, request
-from flask_restful import reqparse, abort, Resource
+from flask_restful import abort, Resource
 from . import db_session
 from .users import User
 from .parsers import user_parser
@@ -16,8 +16,7 @@ class UsersResource(Resource):
                 'user':
                     user.to_dict(
                         only=(
-                            'surname', 'name', 'age', 'position', 'speciality', 'address', 'city_from',
-                            'email'))
+                            'surname', 'name', 'age', 'about', 'email'))
             }
         )
 
@@ -29,11 +28,8 @@ class UsersResource(Resource):
         user.surname = args['surname']
         user.name = args['name']
         user.age = args['age']
-        user.position = args['position']
-        user.speciality = args['speciality']
-        user.address = args['address']
+        user.position = args['about']
         user.email = args['email']
-        user.city_from = args['city_from']
         user.set_password(args['password'])
         session.commit()
         return jsonify({'success': 'OK'})
@@ -57,8 +53,7 @@ class UsersListResource(Resource):
                 'users':
                     [item.to_dict(
                         only=(
-                            'surname', 'name', 'age', 'position', 'speciality', 'address', 'city_from',
-                            'email'))
+                            'surname', 'name', 'age', 'about', 'email'))
                         for item in users]
             }
         )
@@ -70,10 +65,7 @@ class UsersListResource(Resource):
             surname=args['surname'],
             name=args['name'],
             age=args['age'],
-            position=args['position'],
-            speciality=args['speciality'],
-            address=args['address'],
-            city_from=args['city_from'],
+            position=args['about'],
             email=args['email']
         )
         user.set_password(request.json['password'])

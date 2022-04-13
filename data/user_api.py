@@ -18,7 +18,7 @@ def get_users():
         {
             'users':
                 [item.to_dict(
-                    only=('surname', 'name', 'age', 'position', 'speciality', 'address', 'email'))
+                    only=('surname', 'name', 'age', 'about', 'email'))
                  for item in users]
         }
     )
@@ -34,7 +34,7 @@ def get_user(user_id):
         {
             'user':
                 user.to_dict(
-                    only=('surname', 'name', 'age', 'position', 'speciality', 'address', 'email'))
+                    only=('surname', 'name', 'age', 'about', 'email'))
         }
     )
 
@@ -44,16 +44,14 @@ def create_user():
     if not request.json:
         return jsonify({'error': 'Empty request'})
     elif not all(key in request.json for key in
-                 ['surname', 'name', 'age', 'position', 'speciality', 'address', 'email', 'password']):
+                 ['surname', 'name', 'age', 'about', 'email', 'password']):
         return jsonify({'error': 'Bad request'})
     db_sess = db_session.create_session()
     user = User(
         surname=request.json['surname'],
         name=request.json['name'],
         age=request.json['age'],
-        position=request.json['position'],
-        speciality=request.json['speciality'],
-        address=request.json['address'],
+        position=request.json['about'],
         email=request.json['email']
     )
     user.set_password(request.json['password'])
@@ -67,7 +65,7 @@ def edit_user(user_id):
     if not request.json:
         return jsonify({'error': 'Empty request'})
     elif not all(key in request.json for key in
-                 ['surname', 'name', 'age', 'position', 'speciality', 'address', 'email', 'password']):
+                 ['surname', 'name', 'age', 'about', 'email', 'password']):
         return jsonify({'error': 'Bad request'})
     db_sess = db_session.create_session()
     user = db_sess.query(User).get(user_id)
@@ -76,9 +74,7 @@ def edit_user(user_id):
     user.surname = request.json['surname']
     user.name = request.json['name']
     user.age = request.json['age']
-    user.position = request.json['position']
-    user.speciality = request.json['speciality']
-    user.address = request.json['address']
+    user.position = request.json['about']
     user.email = request.json['email']
     user.set_password(request.json['password'])
     db_sess.commit()
