@@ -1,8 +1,8 @@
 from flask import jsonify, request
 from flask_restful import abort, Resource
-from . import db_session
-from .users import User
-from .parsers import user_parser
+from data import db_session
+from data.users import User
+from data.parsers import user_parser
 
 
 class UsersResource(Resource):
@@ -28,7 +28,7 @@ class UsersResource(Resource):
         user.surname = args['surname']
         user.name = args['name']
         user.age = args['age']
-        user.position = args['about']
+        user.about = args['about']
         user.email = args['email']
         user.set_password(args['password'])
         session.commit()
@@ -65,7 +65,7 @@ class UsersListResource(Resource):
             surname=args['surname'],
             name=args['name'],
             age=args['age'],
-            position=args['about'],
+            about=args['about'],
             email=args['email']
         )
         user.set_password(request.json['password'])

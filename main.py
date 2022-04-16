@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, make_response, jsonify, abort, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import Api
-from data import db_session, user_api, user_resource, news_resource
+from data import db_session, user_resources, news_resources, space_object_resources
 from data.users import User
 from data.news import News
 from forms.news import NewsForm
@@ -12,15 +12,16 @@ api = Api(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 login_manager = LoginManager()
 login_manager.init_app(app)
-api.add_resource(user_resource.UsersListResource, '/api/v2/users')
-api.add_resource(user_resource.UsersResource, '/api/v2/users/<int:user_id>')
-api.add_resource(news_resource.NewsListResource, '/api/v2/news')
-api.add_resource(news_resource.NewsResource, '/api/v2/news/<int:news_id>')
+api.add_resource(user_resources.UsersListResource, '/api/users')
+api.add_resource(user_resources.UsersResource, '/api/users/<int:user_id>')
+api.add_resource(news_resources.NewsListResource, '/api/news')
+api.add_resource(news_resources.NewsResource, '/api/news/<int:news_id>')
+api.add_resource(space_object_resources.SpaceObjectsListResource, '/api/space_objects')
+api.add_resource(space_object_resources.SpaceObjectsResource, '/api/space_objects/<int:space_object_id>')
 
 
 def main():
     db_session.global_init("db/astro-project.db")
-    app.register_blueprint(user_api.blueprint)
     app.run(port=8080, host='127.0.0.1')
 
 
@@ -38,10 +39,20 @@ def logout():
 
 
 @app.route("/")
+@app.route("/news")
 def main_page():
     db_sess = db_session.create_session()
-    news = db_sess.query(News).filter(News.is_private != True)
-    return render_template("main_page.html", news=news)
+    if current_user.is_authenticated:
+        news = db_sess.query(News).filter(
+            (News.user == current_user) | (News.is_private != True))
+    else:
+        news = db_sess.query(News).filter(News.is_private != True)
+    return render_template("main_page.html", title="AstroCat", news=news)
+
+
+@app.route("/database")
+def data_page():
+    return render_template("data_page.html", title="База данных")
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -86,7 +97,7 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
-@app.route('/news',  methods=['GET', 'POST'])
+@app.route('/add_news',  methods=['GET', 'POST'])
 @login_required
 def add_news():
     form = NewsForm()
@@ -100,11 +111,11 @@ def add_news():
         db_sess.merge(current_user)
         db_sess.commit()
         return redirect('/')
-    return render_template('news.html', title='Добавление новости',
+    return render_template('news.html', title='Добавление записи',
                            form=form)
 
 
-@app.route('/news/<int:id>', methods=['GET', 'POST'])
+@app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_news(id):
     form = NewsForm()
@@ -133,14 +144,14 @@ def edit_news(id):
         else:
             abort(404)
     return render_template('news.html',
-                           title='Редактирование новости',
+                           title='Редактирование записи',
                            form=form
                            )
 
 
-@app.route('/news_delete/<int:id>', methods=['GET', 'POST'])
+@app.route('/delete_news/<int:id>', methods=['GET', 'POST'])
 @login_required
-def news_delete(id):
+def delete_news(id):
     db_sess = db_session.create_session()
     news = db_sess.query(News).filter(News.id == id,
                                       News.user == current_user
