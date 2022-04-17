@@ -15,72 +15,93 @@
         <td style="background-color: #D3D3D3">№</td>
         <td style="background-color: #D3D3D3">Название объекта</td>
         <td style="background-color: #D3D3D3">Тип</td>
-        <td style="background-color: #D3D3D3">Расстояние до Звезды</td>
+        <td style="background-color: #D3D3D3">Расстояние до Звезды, а.е.</td>
         <td style="background-color: #D3D3D3">Период обращения (в земных годах)</td>
         <td style="background-color: #D3D3D3">Эксцентриситет</td>
-        <td style="background-color: #D3D3D3">Орбитальная скорость</td>
-        <td style="background-color: #D3D3D3">Плотность</td>
-        <td style="background-color: #D3D3D3">Ускорение свободного падения</td>
+        <td style="background-color: #D3D3D3">Орбитальная скорость, км/с</td>
+        <td style="background-color: #D3D3D3">Плотность, x10^3 кг/м^3</td>
+        <td style="background-color: #D3D3D3">Ускорение свободного падения, м/с^2</td>
         <td style="background-color: #D3D3D3">Масса (в массах Земли)</td>
         <td style="background-color: #D3D3D3">Количество спутников</td>
     </tr>
     {% for system_item in item.space_objects%}
         <tr>
-            {% if system_item.collaborators%}
             <td style="background-color: #dfe6f3">
-                <center>{{item.collaborators}}</center>
+                <center>{{system_item.id}}</center>
+            </td>
+            <td style="background-color: #dfe6f3">
+                <center>{{system_item.name}}</center>
+            </td>
+            <td style="background-color: #dfe6f3">
+                <center>{{system_item.space_type}}</center>
+            </td>
+            {% if system_item.radius%}
+            <td style="background-color: #dfe6f3">
+                <center>{{system_item.radius}}</center>
             </td>
             {% else %}
             <td style="background-color: #dfe6f3">
-                <center>-</center></td>
+                <center>–</center></td>
             {% endif %}
-            {% if system_item.collaborators%}
+            {% if system_item.period%}
             <td style="background-color: #dfe6f3">
-                <center>{{item.collaborators}}</center>
+                <center>{{system_item.period}}</center>
             </td>
             {% else %}
             <td style="background-color: #dfe6f3">
-                <center>-</center></td>
+                <center>–</center></td>
             {% endif %}
-            {% if system_item.collaborators%}
+            {% if system_item.ex%}
             <td style="background-color: #dfe6f3">
-                <center>{{item.collaborators}}</center>
+                <center>{{system_item.ex}}</center>
             </td>
             {% else %}
             <td style="background-color: #dfe6f3">
-                <center>-</center></td>
+                <center>–</center></td>
             {% endif %}
-            {% if system_item.collaborators%}
-            <td style="background-color: #dfe6f3">
-                <center>{{item.collaborators}}</center>
-            </td>
-            {% else %}
-            <td style="background-color: #dfe6f3">
-                <center>-</center></td>
-            {% endif %}
-            {% if item.collaborators%}
-            <td style="background-color: #dfe6f3">
-                <center>{{item.collaborators}}</center>
-            </td>
-            {% else %}
-            <td style="background-color: #dfe6f3">
-                <center>-</center></td>
-            {% endif %}
-            {% if system_item.collaborators%}
-            <td style="background-color: #dfe6f3">
-                <center>{{item.collaborators}}</center>
-            </td>
-            {% else %}
-            <td style="background-color: #dfe6f3">
-                <center>-</center></td>
-            {% endif %}
-            {% if item.is_finished%}
+            {% if system_item.v%}
             <td style="background-color: #d4ffb2">
-                <center>Finished</center>
+                <center>{{system_item.v}}</center>
             </td>
             {% else %}
             <td style="background-color: #ffe6ff">
-                <center>Is not finished</center>
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if system_item.p%}
+            <td style="background-color: #d4ffb2">
+                <center>{{system_item.p}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #ffe6ff">
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if system_item.g%}
+            <td style="background-color: #d4ffb2">
+                <center>{{system_item.g}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #ffe6ff">
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if system_item.m%}
+            <td style="background-color: #d4ffb2">
+                <center>{{system_item.m}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #ffe6ff">
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if system_item.sputnik%}
+            <td style="background-color: #d4ffb2">
+                <center>{{system_item.sputnik}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #ffe6ff">
+                <center>–</center>
             </td>
             {% endif %}
         </tr>
@@ -89,11 +110,11 @@
         <td>
         {% if current_user.is_authenticated and (current_user == item.user or current_user.id == 1) %}
         <div>
-            <a href="/jobs/{{ item.id }}" class="btn btn-warning">
-                Edit Job
+            <a href="/add_space_object/{{ item.id }}" class="btn btn-warning">
+                Add space object
             </a>
-            <a href="/job_delete/{{ item.id }}" class="btn btn-danger">
-                Delete Job
+            <a href="/edit_space_system/{{ item.id }}" class="btn btn-warning">
+                Edit system
             </a>
         </div>
         {% endif %}

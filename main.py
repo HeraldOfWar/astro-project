@@ -1,9 +1,11 @@
 from flask import Flask, render_template, redirect, make_response, jsonify, abort, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import Api
-from data import db_session, user_resources, news_resources, space_object_resources
+from data import db_session, user_resources, news_resources, space_object_resources, space_system_resources
 from data.users import User
 from data.news import News
+from data.space_objects import SpaceObject
+from data.space_systems import SpaceSystem
 from forms.news import NewsForm
 from forms.user import RegisterForm, LoginForm
 
@@ -18,6 +20,8 @@ api.add_resource(news_resources.NewsListResource, '/api/news')
 api.add_resource(news_resources.NewsResource, '/api/news/<int:news_id>')
 api.add_resource(space_object_resources.SpaceObjectsListResource, '/api/space_objects')
 api.add_resource(space_object_resources.SpaceObjectsResource, '/api/space_objects/<int:space_object_id>')
+api.add_resource(space_system_resources.SpaceSystemsListResource, '/api/space_systems')
+api.add_resource(space_system_resources.SpaceSystemsResource, '/api/space_systems/<int:space_system_id>')
 
 
 def main():
@@ -52,7 +56,9 @@ def main_page():
 
 @app.route("/database")
 def data_page():
-    return render_template("data_page.html", title="База данных")
+    db_sess = db_session.create_session()
+    systems = db_sess.query(SpaceSystem).all()
+    return render_template("data_page.html", title="База данных", systems=systems)
 
 
 @app.route('/register', methods=['GET', 'POST'])
