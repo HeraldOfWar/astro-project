@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, redirect, make_response, jsonify, abort, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import Api
@@ -28,7 +29,8 @@ api.add_resource(space_system_resources.SpaceSystemsResource, '/api/space_system
 
 def main():
     db_session.global_init("db/astro-project.db")
-    app.run(port=8080, host='127.0.0.1')
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
 
 @login_manager.user_loader
