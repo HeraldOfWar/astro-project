@@ -9,10 +9,9 @@
           crossorigin="anonymous">
     <title>{{title}}</title>
 </head>
-<body>
 <header>
     <nav class="navbar navbar-light bg-light">
-        <a class="navbar-brand" href="#"><h2>AstroCat</h2></a>
+        <a class="navbar-brand" href="/"><h2>AstroCat</h2></a>
         {% if current_user.is_authenticated %}
         <a class="navbar-brand" href="/logout">{{ current_user.name }} {{ current_user.surname }}</a>
         {% else %}

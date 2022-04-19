@@ -8,6 +8,8 @@ from data.space_objects import SpaceObject
 from data.space_systems import SpaceSystem
 from forms.news import NewsForm
 from forms.user import RegisterForm, LoginForm
+from forms.space_system import SpaceSystemForm
+from forms.space_object import SpaceObjectForm
 
 app = Flask(__name__)
 api = Api(app)
@@ -75,6 +77,7 @@ def reqister():
                                    form=form,
                                    message="Такой пользователь уже есть")
         user = User(
+            username=form.username.data,
             name=form.name.data,
             surname=form.surname.data,
             email=form.email.data,
@@ -93,7 +96,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        user = db_sess.query(User).filter((User.email == form.login.data) | (User.username == form.login.data)).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
@@ -168,6 +171,82 @@ def delete_news(id):
     else:
         abort(404)
     return redirect('/')
+
+
+@app.route('/add_system', methods=['GET', 'POST'])
+@login_required
+def add_system():
+    form = SpaceSystemForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        system = SpaceSystem()
+        system.name = form.name.data
+        system.galaxy = form.galaxy.data
+        system.about = form.about.data
+        current_user.space_systems.append(system)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/database')
+    return render_template('space_system.html', title='Добавление космической системы',
+                           form=form)
+
+
+@app.route('/edit_system/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_system(id):
+    form = SpaceSystemForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == id).first()
+        if system:
+            form.name.data = system.name
+            form.galaxy.data = system.galaxy
+            form.about.data = system.about
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == id).first()
+        if system:
+            system.name = form.name.data
+            system.galaxy = form.galaxy.data
+            system.about = form.about.data
+            db_sess.commit()
+            return redirect('/database')
+        else:
+            abort(404)
+    return render_template('space_system.html',
+                           title='Редактирование космической системы',
+                           form=form
+                           )
+
+
+@app.route('/add_space_object/<int:id>', methods=['GET', 'POST'])
+@login_required
+def add_space_object(id):
+    form = SpaceObjectForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        space_object = SpaceObject()
+        space_object.name = form.name.data
+        space_object.space_type = form.space_type.data
+        space_object.radius = form.radius.data
+        space_object.period = form.period.data
+        space_object.ex = form.ex.data
+        space_object.v = form.v.data
+        space_object.p = form.p.data
+        space_object.g = form.g.data
+        space_object.m = form.m.data
+        space_object.sputnik = form.sputnik.data
+        space_object.atmosphere = form.atmosphere.data
+        space_object.about = form.about.data
+        space_object.system = id
+        current_user.space_objects.append(space_object)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/database')
+    return render_template('space_object.html', title='Добавление космического объекта',
+                           form=form)
 
 
 @app.errorhandler(404)

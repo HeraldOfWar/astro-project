@@ -16,7 +16,7 @@ class UsersResource(Resource):
                 'user':
                     user.to_dict(
                         only=(
-                            'surname', 'name', 'age', 'about', 'email'))
+                            'username', 'surname', 'name', 'age', 'about', 'email'))
             }
         )
 
@@ -25,6 +25,7 @@ class UsersResource(Resource):
         args = user_parser.parse_args()
         session = db_session.create_session()
         user = session.query(User).get(user_id)
+        user.username = args['username']
         user.surname = args['surname']
         user.name = args['name']
         user.age = args['age']
@@ -53,7 +54,7 @@ class UsersListResource(Resource):
                 'users':
                     [item.to_dict(
                         only=(
-                            'surname', 'name', 'age', 'about', 'email'))
+                            'username', 'surname', 'name', 'age', 'about', 'email'))
                         for item in users]
             }
         )
@@ -62,6 +63,7 @@ class UsersListResource(Resource):
         args = user_parser.parse_args()
         session = db_session.create_session()
         user = User(
+            username=args['username'],
             surname=args['surname'],
             name=args['name'],
             age=args['age'],

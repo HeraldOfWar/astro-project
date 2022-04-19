@@ -24,6 +24,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
                                      default=datetime.datetime.now)
     news = orm.relation("News", back_populates='user')
     space_systems = orm.relation("SpaceSystem", back_populates='user')
+    space_objects = orm.relation("SpaceObject", back_populates='user')
 
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)

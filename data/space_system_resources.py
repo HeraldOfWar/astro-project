@@ -16,7 +16,7 @@ class SpaceSystemsResource(Resource):
                 'space_system':
                     space_system.to_dict(
                         only=(
-                            'name', 'galaxy', 'user.name'))
+                            'name', 'galaxy', 'about', 'user.name'))
             }
         )
 
@@ -27,6 +27,7 @@ class SpaceSystemsResource(Resource):
         space_system = session.query(SpaceSystem).get(space_system_id)
         space_system.name = args['name']
         space_system.galaxy = args['galaxy']
+        space_system.about = args['about']
         space_system.creator = args['creator']
         session.commit()
         return jsonify({'success': 'OK'})
@@ -50,7 +51,7 @@ class SpaceSystemsListResource(Resource):
                 'space_systems':
                     [item.to_dict(
                         only=(
-                            'name', 'galaxy', 'user.name'))
+                            'name', 'galaxy', 'about', 'user.name'))
                         for item in space_systems]
             }
         )
@@ -61,6 +62,7 @@ class SpaceSystemsListResource(Resource):
         space_system = SpaceSystem(
             name=args['name'],
             space_type=args['galaxy'],
+            about=args['about'],
             creator=args['creator']
         )
         session.add(space_system)
