@@ -11,23 +11,49 @@
 <p></p>
 <center><table cellpadding="8" style="border:1px solid grey">
     <tr>
-        <th colspan="11" style="border:1px solid grey;background-color: #FFEBCD"><center><h4>{{item.name}} ({{item.galaxy}})</h4></center></caption></th>
+        <th colspan="11" style="border:1px solid grey;background-color: #FFEBCD">
+            <center><h4>{{item.name}} ({{item.galaxy}})</h4></center>
+        </th>
     </tr>
     <tr>
-         <td colspan="11" style="border:1px solid grey;background-color: #FFDEAD"><center>{{item.about}}</center></td>
+         <td colspan="11" style="border:1px solid grey;background-color: #FFDEAD">
+             <center>{{item.about}}</center>
+         </td>
     </tr>
     <tr/>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>№</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Название объекта</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Тип</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Расстояние до Звезды, а.е.</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Период обращения вокруг Звезды (в земных годах)</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Эксцентриситет</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Орбитальная скорость, км/с</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Плотность, x10^3 кг/м^3</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Ускорение свободного падения, м/с^2</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Масса (в массах Земли)</center></td>
-        <td style="background-color: #DEB887;border:1px solid grey"><center>Количество спутников</center></td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>№</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Название объекта</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Тип</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Расстояние до Звезды, а.е.</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Период обращения вокруг Звезды (в земных годах)</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Эксцентриситет</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Орбитальная скорость, км/с</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Плотность, x10^3 кг/м^3</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Ускорение свободного падения, м/с^2</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Масса (в массах Земли)</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Количество спутников</center>
+        </td>
     </tr>
     {% for system_item in item.space_objects%}
         <tr>
@@ -35,7 +61,7 @@
                 <center>{{system_item.id}}</center>
             </td>
             <td style="background-color: #FAEBD7;border:1px solid grey">
-                <center>{{system_item.name}}</center>
+                <a href="space_object/{{system_item.id}}"><center>{{system_item.name}}</center></a>
             </td>
             <td style="background-color: #FAEBD7;border:1px solid grey">
                 <center>{{system_item.space_type}}</center>

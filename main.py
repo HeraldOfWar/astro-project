@@ -1,22 +1,26 @@
 import os
-from flask import Flask, render_template, redirect, make_response, jsonify, abort, request
+from flask import Flask, render_template, redirect, make_response, jsonify, abort, request, url_for
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import Api
+from flask_avatars import Avatars
+from werkzeug.utils import secure_filename
+
 from data import db_session, user_resources, news_resources, space_object_resources, space_system_resources
 from data.users import User
 from data.news import News
 from data.space_objects import SpaceObject
 from data.space_systems import SpaceSystem
 from forms.news import NewsForm
-from forms.user import RegisterForm, LoginForm
+from forms.user import RegisterForm, LoginForm, EditUserForm
 from forms.space_system import SpaceSystemForm
 from forms.space_object import SpaceObjectForm
 
 app = Flask(__name__)
-api = Api(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+app.config['NEWS_PHOTO_FOLDER'] = 'img/news_photos/'
 login_manager = LoginManager()
 login_manager.init_app(app)
+api = Api(app)
 api.add_resource(user_resources.UsersListResource, '/api/users')
 api.add_resource(user_resources.UsersResource, '/api/users/<int:user_id>')
 api.add_resource(news_resources.NewsListResource, '/api/news')
@@ -25,6 +29,7 @@ api.add_resource(space_object_resources.SpaceObjectsListResource, '/api/space_ob
 api.add_resource(space_object_resources.SpaceObjectsResource, '/api/space_objects/<int:space_object_id>')
 api.add_resource(space_system_resources.SpaceSystemsListResource, '/api/space_systems')
 api.add_resource(space_system_resources.SpaceSystemsResource, '/api/space_systems/<int:space_system_id>')
+avatars = Avatars(app)
 
 
 def main():
@@ -46,8 +51,8 @@ def logout():
     return redirect("/")
 
 
-@app.route("/")
-@app.route("/news")
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/news", methods=['GET', 'POST'])
 def main_page():
     db_sess = db_session.create_session()
     if current_user.is_authenticated:
@@ -55,14 +60,32 @@ def main_page():
             (News.user == current_user) | (News.is_private != True))
     else:
         news = db_sess.query(News).filter(News.is_private != True)
-    return render_template("main_page.html", title="AstroCat", news=news)
+    return render_template("main_page.html", title="AstroCat", news=news, avatars=avatars)
 
 
-@app.route("/database")
+@app.route("/database", methods=['GET', 'POST'])
 def data_page():
     db_sess = db_session.create_session()
     systems = db_sess.query(SpaceSystem).all()
-    return render_template("data_page.html", title="База данных", systems=systems)
+    return render_template("data_page.html", title="AstroCat", systems=systems)
+
+
+@app.route('/space_object/<int:id>', methods=['GET', 'POST'])
+def space_object_info(id):
+    db_sess = db_session.create_session()
+    space_object = db_sess.query(SpaceObject).filter(SpaceSystem.id == id).first()
+    if space_object:
+        return render_template('space_object_info.html', title=space_object.name, space_object=space_object)
+    return make_response(jsonify({'error': 'Not found'}), 404)
+
+
+@app.route('/user/<username>', methods=['GET', 'POST'])
+def user_profile(username):
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.username == username).first()
+    if user:
+        return render_template('user_profile.html', title='Профиль', user=user, news=user.news)
+    return make_response(jsonify({'error': 'Not found'}), 404)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -72,12 +95,16 @@ def reqister():
         if form.password.data != form.password_again.data:
             return render_template('register.html', title='Регистрация',
                                    form=form,
-                                   message="Пароли не совпадают")
+                                   message="Пароли не совпадают!")
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.email == form.email.data).first():
             return render_template('register.html', title='Регистрация',
                                    form=form,
-                                   message="Такой пользователь уже есть")
+                                   message="Такой пользователь уже есть!")
+        if db_sess.query(User).filter(User.username == form.username.data).first():
+            return render_template('register.html', title='Регистрация',
+                                   form=form,
+                                   message="Логин занят!")
         user = User(
             username=form.username.data,
             name=form.name.data,
@@ -118,11 +145,16 @@ def add_news():
         news.title = form.title.data
         news.content = form.content.data
         news.is_private = form.is_private.data
+        file = form.photo.data
+        if file:
+            filename = secure_filename(file.filename)
+            news.photo_path = url_for('static', filename=app.config['NEWS_PHOTO_FOLDER'] + filename)
+            file.save(f'static/img/news_photos/{filename}')
         current_user.news.append(news)
         db_sess.merge(current_user)
         db_sess.commit()
-        return redirect('/')
-    return render_template('news.html', title='Добавление записи',
+        return redirect(f'/user/{news.user.username}')
+    return render_template('news.html', title='AstroCat',
                            form=form)
 
 
@@ -150,13 +182,18 @@ def edit_news(id):
             news.title = form.title.data
             news.content = form.content.data
             news.is_private = form.is_private.data
+            file = form.photo.data
+            if file:
+                filename = secure_filename(file.filename)
+                news.photo_path = url_for('static', filename=app.config['NEWS_PHOTO_FOLDER'] + filename)
+                file.save(f'static/img/news_photos/{filename}')
             db_sess.commit()
-            return redirect('/')
+            return redirect(f'/user/{news.user.username}')
         else:
             abort(404)
     return render_template('news.html',
-                           title='Редактирование записи',
-                           form=form
+                           title='AstroCat',
+                           form=form, photo=news.photo_path
                            )
 
 
@@ -168,11 +205,12 @@ def delete_news(id):
                                       News.user == current_user
                                       ).first()
     if news:
+        user = news.user
         db_sess.delete(news)
         db_sess.commit()
+        return redirect(f'/user/{user.username}')
     else:
         abort(404)
-    return redirect('/')
 
 
 @app.route('/add_system', methods=['GET', 'POST'])
@@ -189,7 +227,7 @@ def add_system():
         db_sess.merge(current_user)
         db_sess.commit()
         return redirect('/database')
-    return render_template('space_system.html', title='Добавление космической системы',
+    return render_template('space_system.html', title='AstroCat',
                            form=form)
 
 
@@ -218,7 +256,7 @@ def edit_system(id):
         else:
             abort(404)
     return render_template('space_system.html',
-                           title='Редактирование космической системы',
+                           title='AstroCat',
                            form=form
                            )
 
@@ -247,8 +285,94 @@ def add_space_object(id):
         db_sess.merge(current_user)
         db_sess.commit()
         return redirect('/database')
-    return render_template('space_object.html', title='Добавление космического объекта',
+    return render_template('space_object.html', title='AstroCat',
                            form=form)
+
+
+@app.route('/edit_space_object/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_space_object(id):
+    form = SpaceObjectForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        space_object = db_sess.query(SpaceObject).filter(SpaceObject.id == id).first()
+        if space_object:
+            form.name.data = space_object.name
+            form.space_type.data = space_object.space_type
+            form.radius.data = space_object.radius
+            form.period.data = space_object.period
+            form.ex.data = space_object.ex
+            form.v.data = space_object.v
+            form.p.data = space_object.p
+            form.g.data = space_object.g
+            form.m.data = space_object.m
+            form.sputnik.data = space_object.sputnik
+            form.atmosphere.data = space_object.atmosphere
+            form.about.data = space_object.about
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        space_object = db_sess.query(SpaceObject).filter(SpaceObject.id == id).first()
+        if space_object:
+            space_object.name = form.name.data
+            space_object.space_type = form.space_type.data
+            space_object.radius = form.radius.data
+            space_object.period = form.period.data
+            space_object.ex = form.ex.data
+            space_object.v = form.v.data
+            space_object.p = form.p.data
+            space_object.g = form.g.data
+            space_object.m = form.m.data
+            space_object.sputnik = form.sputnik.data
+            space_object.atmosphere = form.atmosphere.data
+            space_object.about = form.about.data
+            db_sess.commit()
+            return redirect(f'/space_object/{id}')
+        else:
+            abort(404)
+    return render_template('space_object.html',
+                           title='AstroCat',
+                           form=form
+                           )
+
+@app.route('/edit_user/<username>', methods=['GET', 'POST'])
+@login_required
+def edit_user(username):
+    form = EditUserForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.username == username).first()
+        if user:
+            form.username.data = user.username
+            form.name.data = user.name
+            form.surname.data = user.surname
+            form.age.data = user.age
+            form.about.data = user.about
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.username == username).first()
+        if user:
+            new_user = db_sess.query(User).filter(User.username == form.username.data).first()
+            if new_user and new_user != user:
+                return render_template('user.html', title='AstroCat',
+                                       form=form,
+                                       message="Логин занят!")
+            user.username = form.username.data
+            user.name = form.name.data
+            user.surname = form.surname.data
+            user.age = form.age.data
+            user.about = form.about.data
+            db_sess.commit()
+            return redirect(f'/user/{user.username}')
+        else:
+            abort(404)
+    return render_template('user.html',
+                           title='AstroCat',
+                           form=form
+                           )
 
 
 @app.errorhandler(404)
