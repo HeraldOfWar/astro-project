@@ -1,3 +1,4 @@
+<!-- Шаблон для страницы с информацией о космическом объекте -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -79,9 +80,11 @@
     {% endif %}
     <tr><td style="padding-left:50px;padding-top:10px">
         <div>
+            {% if current_user.is_authenticated %}
             <a href="/edit_space_object/{{ space_object.name }}" class="btn btn-warning">
                 Изменить
             </a>
+            {% endif %}
             {% if current_user.id == 1 %}
             <a href="/delete_space_object/{{ space_object.name }}" class="btn btn-danger">
                 Удалить

@@ -6,8 +6,10 @@ from data.parsers import user_parser
 
 
 class UsersResource(Resource):
+    """Ресурс пользователя (restful-api)"""
 
     def get(self, user_id):
+        """Получение пользователя"""
         abort_if_user_not_found(user_id)
         session = db_session.create_session()
         user = session.query(User).get(user_id)
@@ -21,6 +23,7 @@ class UsersResource(Resource):
         )
 
     def post(self, user_id):
+        """Изменение пользователя"""
         abort_if_user_not_found(user_id)
         args = user_parser.parse_args()
         session = db_session.create_session()
@@ -36,6 +39,7 @@ class UsersResource(Resource):
         return jsonify({'success': 'OK'})
 
     def delete(self, user_id):
+        """Удаление пользователя"""
         abort_if_user_not_found(user_id)
         session = db_session.create_session()
         user = session.query(User).get(user_id)
@@ -45,8 +49,10 @@ class UsersResource(Resource):
 
 
 class UsersListResource(Resource):
+    """Ресурс списка пользователей (restful-api)"""
 
     def get(self):
+        """Получение всех пользователей"""
         session = db_session.create_session()
         users = session.query(User).all()
         return jsonify(
@@ -60,6 +66,7 @@ class UsersListResource(Resource):
         )
 
     def post(self):
+        """Создание пользователя"""
         args = user_parser.parse_args()
         session = db_session.create_session()
         user = User(
@@ -77,6 +84,7 @@ class UsersListResource(Resource):
 
 
 def abort_if_user_not_found(user_id):
+    """Обработка ситуации, когда пользователя с указанным id не существует"""
     session = db_session.create_session()
     user = session.query(User).get(user_id)
     if not user:

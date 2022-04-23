@@ -5,6 +5,7 @@ from wtforms.validators import DataRequired
 
 
 class SpaceObjectForm(FlaskForm):
+    """Форма для создания/изменения космического объекта"""
     name = StringField('Название', validators=[DataRequired()])
     space_type = StringField('Тип', validators=[DataRequired()])
     radius = FloatField('Расстояние до Звезды (а.е.)')

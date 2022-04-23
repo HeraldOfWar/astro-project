@@ -6,8 +6,10 @@ from data.parsers import space_system_parser
 
 
 class SpaceSystemsResource(Resource):
+    """Ресурс звёздной системы (restful-api)"""
 
     def get(self, space_system_id):
+        """Получение звёздной системы"""
         abort_if_space_system_not_found(space_system_id)
         session = db_session.create_session()
         space_system = session.query(SpaceSystem).get(space_system_id)
@@ -21,6 +23,7 @@ class SpaceSystemsResource(Resource):
         )
 
     def post(self, space_system_id):
+        """Изменение звёздной системы"""
         abort_if_space_system_not_found(space_system_id)
         args = space_system_parser.parse_args()
         session = db_session.create_session()
@@ -33,6 +36,7 @@ class SpaceSystemsResource(Resource):
         return jsonify({'success': 'OK'})
 
     def delete(self, space_system_id):
+        """Удаление звёздной системы"""
         abort_if_space_system_not_found(space_system_id)
         session = db_session.create_session()
         space_system = session.query(SpaceSystem).get(space_system_id)
@@ -42,8 +46,10 @@ class SpaceSystemsResource(Resource):
 
 
 class SpaceSystemsListResource(Resource):
+    """Ресурс списка звёздных систем (restful-api)"""
 
     def get(self):
+        """Получение всех звёздных систем"""
         session = db_session.create_session()
         space_systems = session.query(SpaceSystem).all()
         return jsonify(
@@ -57,6 +63,7 @@ class SpaceSystemsListResource(Resource):
         )
 
     def post(self):
+        """Создание звёздной системы"""
         args = space_system_parser.parse_args()
         session = db_session.create_session()
         space_system = SpaceSystem(
@@ -71,6 +78,7 @@ class SpaceSystemsListResource(Resource):
 
 
 def abort_if_space_system_not_found(space_system_id):
+    """Обработка ситуации, когда звёздной системы с указанным id не существует"""
     session = db_session.create_session()
     space_system = session.query(SpaceSystem).get(space_system_id)
     if not space_system:

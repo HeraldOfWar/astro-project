@@ -4,6 +4,7 @@ from wtforms.validators import DataRequired
 
 
 class SpaceSystemForm(FlaskForm):
+    """Форма для создания/изменения звёздной системы"""
     name = StringField('Название', validators=[DataRequired()])
     galaxy = StringField("Галактика")
     about = TextAreaField('Описание')

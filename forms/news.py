@@ -6,8 +6,9 @@ from wtforms.validators import DataRequired
 
 
 class NewsForm(FlaskForm):
+    """Форма для создания/изменения записи"""
     title = StringField('Заголовок', validators=[DataRequired()])
     content = TextAreaField("Содержание")
-    photo = FileField('Фото', validators=[FileAllowed(['png', 'jpg', 'jpeg'], 'Только png и jpg!')])
+    photo = FileField('Изображение', validators=[FileAllowed(['png', 'jpg', 'jpeg'], 'Только png и jpg!')])
     is_private = BooleanField("Личное")
     submit = SubmitField('Создать')

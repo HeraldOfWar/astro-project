@@ -6,19 +6,20 @@ from data.db_session import SqlAlchemyBase
 
 
 class News(SqlAlchemyBase, SerializerMixin):
-    __tablename__ = 'news'
+    """Модель записи пользователя"""
+    __tablename__ = 'news'  # название таблицы
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
-                           primary_key=True, autoincrement=True)
-    title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    content = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    photo_path = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+                           primary_key=True, autoincrement=True)  # идентификатор
+    title = sqlalchemy.Column(sqlalchemy.String, nullable=True)  # заголовок
+    content = sqlalchemy.Column(sqlalchemy.String, nullable=True)  # содержимое (текст)
+    photo_path = sqlalchemy.Column(sqlalchemy.String, nullable=True)  # путь к изображению
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
-                                     default=datetime.datetime.now)
-    is_private = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
+                                     default=datetime.datetime.now)  # дата создания
+    is_private = sqlalchemy.Column(sqlalchemy.Boolean, default=True)  # личное/публичное
     user_id = sqlalchemy.Column(sqlalchemy.Integer,
-                                sqlalchemy.ForeignKey("users.id"))
-    user = orm.relation('User')
+                                sqlalchemy.ForeignKey("users.id"))  # идентификатор автора записи
+    user = orm.relation('User')  # связываем с моделью пользователя
 
     def __repr__(self):
         return f'<News> {self.title}'

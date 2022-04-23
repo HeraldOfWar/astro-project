@@ -14,12 +14,13 @@ from forms.user import RegisterForm, LoginForm, EditUserForm
 from forms.space_system import SpaceSystemForm
 from forms.space_object import SpaceObjectForm
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
-app.config['NEWS_PHOTO_FOLDER'] = 'img/news_photos/'
-login_manager = LoginManager()
-login_manager.init_app(app)
-api = Api(app)
+app = Flask(__name__)  # создаём приложение Flask
+app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'  # секретный ключ
+app.config['NEWS_PHOTO_FOLDER'] = 'img/news_photos/'  # путь к ресурсам записей
+login_manager = LoginManager()  # для авторизации
+login_manager.init_app(app)  # инициализация в приложении
+api = Api(app)  # создание api-ресурса
+"""Добавление всех ресурсов моделей со ссылками"""
 api.add_resource(user_resources.UsersListResource, '/api/users')
 api.add_resource(user_resources.UsersResource, '/api/users/<int:user_id>')
 api.add_resource(news_resources.NewsListResource, '/api/news')
@@ -28,17 +29,19 @@ api.add_resource(space_object_resources.SpaceObjectsListResource, '/api/space_ob
 api.add_resource(space_object_resources.SpaceObjectsResource, '/api/space_objects/<int:space_object_id>')
 api.add_resource(space_system_resources.SpaceSystemsListResource, '/api/space_systems')
 api.add_resource(space_system_resources.SpaceSystemsResource, '/api/space_systems/<int:space_system_id>')
-avatars = Avatars(app)
+avatars = Avatars(app)  # для удобной работы с аватарками
 
 
 def main():
-    db_session.global_init("db/astro-project.db")
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    """Запуск приложения"""
+    db_session.global_init("db/astro-project.db")  # объявление базы данных
+    port = int(os.environ.get("PORT", 5000))  # порт
+    app.run(host='0.0.0.0', port=port)  # запуск
 
 
 @login_manager.user_loader
 def load_user(user_id):
+    """Загрузка текущего пользователя"""
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
 
@@ -46,43 +49,48 @@ def load_user(user_id):
 @app.route('/logout')
 @login_required
 def logout():
+    """Выход пользователя"""
     logout_user()
-    return redirect("/")
+    return redirect("/")  # перевод на главную страницу
 
 
 @app.route("/", methods=['GET', 'POST'])
 @app.route("/news", methods=['GET', 'POST'])
 def main_page():
+    """Главная страница"""
     db_sess = db_session.create_session()
-    if current_user.is_authenticated:
+    if current_user.is_authenticated:  # если авторизован
         news = db_sess.query(News).filter(
-            (News.user == current_user) | (News.is_private != True))
+            (News.user == current_user) | (News.is_private != True))  # все свои записи
     else:
-        news = db_sess.query(News).filter(News.is_private != True)
-    return render_template("main_page.html", title="AstroCat", news=news, avatars=avatars)
+        news = db_sess.query(News).filter(News.is_private != True)  # только публичные
+    return render_template("main_page.html", title="AstroCat", news=news, avatars=avatars)  # отображение html-файла
 
 
 @app.route("/database", methods=['GET', 'POST'])
 def data_page():
+    """Страница с Базой Данных"""
     db_sess = db_session.create_session()
-    solar_system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == 1).first()
-    systems = db_sess.query(SpaceSystem).filter(SpaceSystem.id != 1)
+    solar_system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == 1).first()  # специально для Солнечной системы
+    systems = db_sess.query(SpaceSystem).filter(SpaceSystem.id != 1)  # все остальные
     return render_template("data_page.html", title="AstroCat", systems=systems, solar_system=solar_system)
 
 
 @app.route('/space_object/<name>', methods=['GET', 'POST'])
 def space_object_info(name):
+    """Страница с информацией о космическом объекте"""
     db_sess = db_session.create_session()
-    space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name).first()
+    space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name).first()  # поиск по имени
     if space_object:
         return render_template('space_object_info.html', title=space_object.name, space_object=space_object)
-    return make_response(jsonify({'error': 'Not found'}), 404)
+    return make_response(jsonify({'error': 'Not found'}), 404)  # если не найден
 
 
 @app.route('/user/<username>', methods=['GET', 'POST'])
 def user_profile(username):
+    """Страница с профилем пользователя"""
     db_sess = db_session.create_session()
-    user = db_sess.query(User).filter(User.username == username).first()
+    user = db_sess.query(User).filter(User.username == username).first()  # поиск по логину
     if user:
         return render_template('user_profile.html', title='Профиль', user=user, news=user.news)
     return make_response(jsonify({'error': 'Not found'}), 404)
@@ -90,6 +98,7 @@ def user_profile(username):
 
 @app.route('/register', methods=['GET', 'POST'])
 def reqister():
+    """Страница с формой регистрации"""
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
@@ -112,16 +121,17 @@ def reqister():
             email=form.email.data,
             age=form.age.data,
             about=form.about.data
-        )
-        user.set_password(form.password.data)
-        db_sess.add(user)
-        db_sess.commit()
+        )  # создание пользователя
+        user.set_password(form.password.data)  # хэширование пароля
+        db_sess.add(user)  # добавление пользователя
+        db_sess.commit()  # подтверждение изменений
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Страница с формой авторизации пользователя"""
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -138,6 +148,7 @@ def login():
 @app.route('/add_news',  methods=['GET', 'POST'])
 @login_required
 def add_news():
+    """Страница с формой добавления записи"""
     form = NewsForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -145,11 +156,11 @@ def add_news():
         news.title = form.title.data
         news.content = form.content.data
         news.is_private = form.is_private.data
-        file = form.photo.data
+        file = form.photo.data  # загрузка файла (изображения)
         if file:
             filename = secure_filename(file.filename)
             news.photo_path = url_for('static', filename=app.config['NEWS_PHOTO_FOLDER'] + filename)
-            file.save(f'static/img/news_photos/{filename}')
+            file.save(f'static/img/news_photos/{filename}')  # сохранение файла
         current_user.news.append(news)
         db_sess.merge(current_user)
         db_sess.commit()
@@ -161,6 +172,7 @@ def add_news():
 @app.route('/edit_news/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_news(id):
+    """Страница с формой редактирования записи"""
     form = NewsForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
@@ -184,6 +196,8 @@ def edit_news(id):
             news.is_private = form.is_private.data
             file = form.photo.data
             if file:
+                if news.photo_path:
+                    os.remove(news.photo_path)
                 filename = secure_filename(file.filename)
                 news.photo_path = url_for('static', filename=app.config['NEWS_PHOTO_FOLDER'] + filename)
                 file.save(f'static/img/news_photos/{filename}')
@@ -200,13 +214,16 @@ def edit_news(id):
 @app.route('/delete_news/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_news(id):
+    """Удаление записи"""
     db_sess = db_session.create_session()
     news = db_sess.query(News).filter(News.id == id,
                                       News.user == current_user
                                       ).first()
     if news:
         user = news.user
-        db_sess.delete(news)
+        if news.photo_path:  # если было изображение
+            os.remove(news.photo_path)  # удаляем
+        db_sess.delete(news)  # удаление
         db_sess.commit()
         return redirect(f'/user/{user.username}')
     else:
@@ -216,6 +233,7 @@ def delete_news(id):
 @app.route('/add_system', methods=['GET', 'POST'])
 @login_required
 def add_system():
+    """Страница с формой добавления звёздной системы"""
     form = SpaceSystemForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -230,7 +248,7 @@ def add_system():
         current_user.space_systems.append(system)
         db_sess.merge(current_user)
         db_sess.commit()
-        os.mkdir(f'static/img/{system.name}')
+        os.mkdir(f'static/img/{system.name}')  # создание папки для изображение космических объектов системы
         return redirect('/database')
     return render_template('space_system.html', title='AstroCat',
                            form=form)
@@ -239,6 +257,7 @@ def add_system():
 @app.route('/edit_system/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_system(id):
+    """Страница с формой редактирования звёздной системы"""
     form = SpaceSystemForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
@@ -253,6 +272,11 @@ def edit_system(id):
         db_sess = db_session.create_session()
         system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == id).first()
         if system:
+            if db_sess.query(SpaceSystem).filter(SpaceSystem.name == form.name.data).first():
+                return render_template('space_system.html', title='AstroCat',
+                                       form=form,
+                                       message="Такая система уже есть!")
+            os.rename(f'static/img/{system.name}', f'static/img/{form.name.data}')  # переименовываем папку
             system.name = form.name.data
             system.galaxy = form.galaxy.data
             system.about = form.about.data
@@ -269,15 +293,16 @@ def edit_system(id):
 @app.route('/delete_system/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_system(id):
+    """Удаление звёздной системы"""
     db_sess = db_session.create_session()
     system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == id,
                                                (SpaceSystem.user == current_user) | (current_user.id == 1)
                                                ).first()
     if system:
-        user = system.user
+        os.rmdir(f'static/img/{system.name}')
         db_sess.delete(system)
         db_sess.commit()
-        return redirect(f'/user/{user.username}')
+        return redirect('/database')
     else:
         abort(404)
 
@@ -285,6 +310,7 @@ def delete_system(id):
 @app.route('/add_space_object/<int:id>', methods=['GET', 'POST'])
 @login_required
 def add_space_object(id):
+    """Страница с формой добавления космического объекта"""
     form = SpaceObjectForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -317,6 +343,7 @@ def add_space_object(id):
 @app.route('/edit_space_object/<name>', methods=['GET', 'POST'])
 @login_required
 def edit_space_object(name):
+    """Страница с формой редактирования космического объекта """
     form = SpaceObjectForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
@@ -340,6 +367,10 @@ def edit_space_object(name):
         db_sess = db_session.create_session()
         space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name).first()
         if space_object:
+            if db_sess.query(SpaceObject).filter(SpaceObject.name == form.name.data).first():
+                return render_template('space_object.html', title='AstroCat',
+                                       form=form,
+                                       message="Такой объект уже есть!")
             space_object.name = form.name.data
             space_object.space_type = form.space_type.data
             space_object.radius = form.radius.data
@@ -356,10 +387,13 @@ def edit_space_object(name):
             if file:
                 filename = secure_filename(file.filename)
                 if space_object.space_system.id == 1:
+                    if space_object.image_path:
+                        os.remove(space_object.image_path)
                     space_object.image_path = url_for('static',
                                                       filename='img/solar_img/' + filename)
                     file.save(f'static/img/solar_img/{filename}')
                 else:
+                    os.remove(space_object.image_path)
                     space_object.image_path = url_for('static',
                                                       filename=f'img/{space_object.space_system.name}' + filename)
                     file.save(f'static/img/{space_object.space_system.name}/{filename}')
@@ -376,15 +410,17 @@ def edit_space_object(name):
 @app.route('/delete_space_object/<name>', methods=['GET', 'POST'])
 @login_required
 def delete_space_object(name):
+    """Удаление космического объекта"""
     db_sess = db_session.create_session()
     space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name,
                                                (SpaceObject.user == current_user) | (current_user.id == 1)
                                                ).first()
     if space_object:
-        user = space_object.user
+        if space_object.image_path:
+            os.remove(space_object.image_path)
         db_sess.delete(space_object)
         db_sess.commit()
-        return redirect(f'/user/{user.username}')
+        return redirect('/database')
     else:
         abort(404)
 
@@ -392,6 +428,7 @@ def delete_space_object(name):
 @app.route('/edit_user/<username>', methods=['GET', 'POST'])
 @login_required
 def edit_user(username):
+    """Страница с формой редактирования пользователя"""
     form = EditUserForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
@@ -430,13 +467,15 @@ def edit_user(username):
 
 @app.route('/download_file')
 def download_file():
-    return send_file('app/dist/main.exe')
+    """Загрузка файла (модели Солнечной системы)"""
+    return send_file('app/dist/modelSolarSystem.exe')
 
 
 @app.errorhandler(404)
 def not_found(error):
+    """Обработка ошибки 404"""
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 
 if __name__ == '__main__':
-    main()
+    main()  # запуск приложения

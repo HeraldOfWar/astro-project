@@ -1,3 +1,4 @@
+<!-- Шаблон страницы Базы Данных с таблицами-->
 {% extends "base.html" %}
 
 {% block content %}
@@ -152,9 +153,6 @@
             </a>
             <a href="/edit_system/{{ solar_system.id }}" class="btn btn-warning">
                 Изменить систему
-            </a>
-            <a href="/delete_system/{{ solar_system.id }}" class="btn btn-danger">
-                Удалить систему
             </a>
         </div></center>
         {% endif %}

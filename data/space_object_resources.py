@@ -6,8 +6,10 @@ from data.parsers import space_object_parser
 
 
 class SpaceObjectsResource(Resource):
+    """Ресурс космического объекта (restful-api)"""
 
     def get(self, space_object_id):
+        """Получение космического объекта"""
         abort_if_space_object_not_found(space_object_id)
         session = db_session.create_session()
         space_object = session.query(SpaceObject).get(space_object_id)
@@ -22,6 +24,7 @@ class SpaceObjectsResource(Resource):
         )
 
     def post(self, space_object_id):
+        """Изменение космического объекта"""
         abort_if_space_object_not_found(space_object_id)
         args = space_object_parser.parse_args()
         session = db_session.create_session()
@@ -43,6 +46,7 @@ class SpaceObjectsResource(Resource):
         return jsonify({'success': 'OK'})
 
     def delete(self, space_object_id):
+        """Удаление космического объекта"""
         abort_if_space_object_not_found(space_object_id)
         session = db_session.create_session()
         space_object = session.query(SpaceObject).get(space_object_id)
@@ -52,8 +56,10 @@ class SpaceObjectsResource(Resource):
 
 
 class SpaceObjectsListResource(Resource):
+    """Ресурс списка космических объектов (restful-api)"""
 
     def get(self):
+        """Получение всех космических объектов"""
         session = db_session.create_session()
         space_objects = session.query(SpaceObject).all()
         return jsonify(
@@ -68,6 +74,7 @@ class SpaceObjectsListResource(Resource):
         )
 
     def post(self):
+        """Создание космического объекта"""
         args = space_object_parser.parse_args()
         session = db_session.create_session()
         space_object = SpaceObject(
@@ -91,6 +98,7 @@ class SpaceObjectsListResource(Resource):
 
 
 def abort_if_space_object_not_found(space_object_id):
+    """Обработка ситуации, когда космического объекта с указанным id не существует"""
     session = db_session.create_session()
     space_object = session.query(SpaceObject).get(space_object_id)
     if not space_object:
