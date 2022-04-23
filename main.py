@@ -1,10 +1,9 @@
 import os
-from flask import Flask, render_template, redirect, make_response, jsonify, abort, request, url_for
+from flask import Flask, render_template, redirect, make_response, jsonify, abort, request, url_for, send_file
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import Api
 from flask_avatars import Avatars
 from werkzeug.utils import secure_filename
-
 from data import db_session, user_resources, news_resources, space_object_resources, space_system_resources
 from data.users import User
 from data.news import News
@@ -66,14 +65,15 @@ def main_page():
 @app.route("/database", methods=['GET', 'POST'])
 def data_page():
     db_sess = db_session.create_session()
-    systems = db_sess.query(SpaceSystem).all()
-    return render_template("data_page.html", title="AstroCat", systems=systems)
+    solar_system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == 1).first()
+    systems = db_sess.query(SpaceSystem).filter(SpaceSystem.id != 1)
+    return render_template("data_page.html", title="AstroCat", systems=systems, solar_system=solar_system)
 
 
-@app.route('/space_object/<int:id>', methods=['GET', 'POST'])
-def space_object_info(id):
+@app.route('/space_object/<name>', methods=['GET', 'POST'])
+def space_object_info(name):
     db_sess = db_session.create_session()
-    space_object = db_sess.query(SpaceObject).filter(SpaceSystem.id == id).first()
+    space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name).first()
     if space_object:
         return render_template('space_object_info.html', title=space_object.name, space_object=space_object)
     return make_response(jsonify({'error': 'Not found'}), 404)
@@ -219,6 +219,10 @@ def add_system():
     form = SpaceSystemForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
+        if db_sess.query(SpaceSystem).filter(SpaceSystem.name == form.name.data).first():
+            return render_template('space_system.html', title='AstroCat',
+                                   form=form,
+                                   message="Такая система уже есть!")
         system = SpaceSystem()
         system.name = form.name.data
         system.galaxy = form.galaxy.data
@@ -226,6 +230,7 @@ def add_system():
         current_user.space_systems.append(system)
         db_sess.merge(current_user)
         db_sess.commit()
+        os.mkdir(f'static/img/{system.name}')
         return redirect('/database')
     return render_template('space_system.html', title='AstroCat',
                            form=form)
@@ -261,12 +266,32 @@ def edit_system(id):
                            )
 
 
+@app.route('/delete_system/<int:id>', methods=['GET', 'POST'])
+@login_required
+def delete_system(id):
+    db_sess = db_session.create_session()
+    system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == id,
+                                               (SpaceSystem.user == current_user) | (current_user.id == 1)
+                                               ).first()
+    if system:
+        user = system.user
+        db_sess.delete(system)
+        db_sess.commit()
+        return redirect(f'/user/{user.username}')
+    else:
+        abort(404)
+
+
 @app.route('/add_space_object/<int:id>', methods=['GET', 'POST'])
 @login_required
 def add_space_object(id):
     form = SpaceObjectForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
+        if db_sess.query(SpaceObject).filter(SpaceObject.name == form.name.data).first():
+            return render_template('space_object.html', title='AstroCat',
+                                   form=form,
+                                   message="Такой объект уже есть!")
         space_object = SpaceObject()
         space_object.name = form.name.data
         space_object.space_type = form.space_type.data
@@ -289,13 +314,13 @@ def add_space_object(id):
                            form=form)
 
 
-@app.route('/edit_space_object/<int:id>', methods=['GET', 'POST'])
+@app.route('/edit_space_object/<name>', methods=['GET', 'POST'])
 @login_required
-def edit_space_object(id):
+def edit_space_object(name):
     form = SpaceObjectForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
-        space_object = db_sess.query(SpaceObject).filter(SpaceObject.id == id).first()
+        space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name).first()
         if space_object:
             form.name.data = space_object.name
             form.space_type.data = space_object.space_type
@@ -313,7 +338,7 @@ def edit_space_object(id):
             abort(404)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        space_object = db_sess.query(SpaceObject).filter(SpaceObject.id == id).first()
+        space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name).first()
         if space_object:
             space_object.name = form.name.data
             space_object.space_type = form.space_type.data
@@ -327,14 +352,42 @@ def edit_space_object(id):
             space_object.sputnik = form.sputnik.data
             space_object.atmosphere = form.atmosphere.data
             space_object.about = form.about.data
+            file = form.image.data
+            if file:
+                filename = secure_filename(file.filename)
+                if space_object.space_system.id == 1:
+                    space_object.image_path = url_for('static',
+                                                      filename='img/solar_img/' + filename)
+                    file.save(f'static/img/solar_img/{filename}')
+                else:
+                    space_object.image_path = url_for('static',
+                                                      filename=f'img/{space_object.space_system.name}' + filename)
+                    file.save(f'static/img/{space_object.space_system.name}/{filename}')
             db_sess.commit()
-            return redirect(f'/space_object/{id}')
+            return redirect(f'/space_object/{space_object.name}')
         else:
             abort(404)
     return render_template('space_object.html',
                            title='AstroCat',
-                           form=form
+                           form=form, image=space_object.image_path
                            )
+
+
+@app.route('/delete_space_object/<name>', methods=['GET', 'POST'])
+@login_required
+def delete_space_object(name):
+    db_sess = db_session.create_session()
+    space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name,
+                                               (SpaceObject.user == current_user) | (current_user.id == 1)
+                                               ).first()
+    if space_object:
+        user = space_object.user
+        db_sess.delete(space_object)
+        db_sess.commit()
+        return redirect(f'/user/{user.username}')
+    else:
+        abort(404)
+
 
 @app.route('/edit_user/<username>', methods=['GET', 'POST'])
 @login_required
@@ -373,6 +426,11 @@ def edit_user(username):
                            title='AstroCat',
                            form=form
                            )
+
+
+@app.route('/download_file')
+def download_file():
+    return send_file('app/dist/main.exe')
 
 
 @app.errorhandler(404)

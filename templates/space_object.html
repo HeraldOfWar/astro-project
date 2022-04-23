@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>Добавление космического объекта</h1>
-<form action="" method="post">
+<form action="" method="POST" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     <p>
         {{ form.name.label }}<br>
@@ -112,6 +112,18 @@
             </p>
         {% endfor %}
     </p>
+    <p>
+        {{ form.image.label }}<br>
+        {{ form.image(class="form-control") }}<br>
+        {% for error in form.image.errors %}
+            <p class="alert alert-danger" role="alert">
+                {{ error }}
+            </p>
+        {% endfor %}
+    </p>
+    {% if image %}
+    <img src="{{image}}" class="card-img-top" alt="...">
+    {% endif %}
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
     {{message}}
 </form>

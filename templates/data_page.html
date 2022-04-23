@@ -3,21 +3,20 @@
 {% block content %}
 <center><h1>База данных космических объектов</h1></center>
 <p></p>
-<a href="news" class="btn btn-secondary">-> Записки астронома</a>
+<a href="news" class="btn btn-secondary">-> Записки астрономов</a>
 {% if current_user.is_authenticated %}
     <a href="add_system" class="btn btn-secondary">Добавить систему</a>
 {% endif %}
-{% for item in systems %}
 <p></p>
-<center><table cellpadding="8" style="border:1px solid grey">
+<center><table cellpadding="8">
     <tr>
         <th colspan="11" style="border:1px solid grey;background-color: #FFEBCD">
-            <center><h4>{{item.name}} ({{item.galaxy}})</h4></center>
+            <center><h4>{{solar_system.name}} ({{solar_system.galaxy}})</h4></center>
         </th>
     </tr>
     <tr>
          <td colspan="11" style="border:1px solid grey;background-color: #FFDEAD">
-             <center>{{item.about}}</center>
+             <center>{{solar_system.about}}</center>
          </td>
     </tr>
     <tr/>
@@ -55,13 +54,13 @@
             <center>Количество спутников</center>
         </td>
     </tr>
-    {% for system_item in item.space_objects%}
+    {% for system_item in solar_system.space_objects%}
         <tr>
             <td style="background-color: #FAEBD7;border:1px solid grey">
                 <center>{{system_item.id}}</center>
             </td>
             <td style="background-color: #FAEBD7;border:1px solid grey">
-                <a href="space_object/{{system_item.id}}"><center>{{system_item.name}}</center></a>
+                <a href="space_object/{{system_item.name}}"><center>{{system_item.name}}</center></a>
             </td>
             <td style="background-color: #FAEBD7;border:1px solid grey">
                 <center>{{system_item.space_type}}</center>
@@ -135,6 +134,174 @@
                 <center>–</center>
             </td>
             {% endif %}
+            {% if current_user.id == 1 %}
+            <td>
+                <center><a href="/delete_space_object/{{ system_item.name }}" class="btn btn-danger">
+                    X
+                </a></center>
+            </td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+    <tr>
+        <td colspan="11" style="background-color: #FFF8DC;border:1px solid grey">
+        {% if current_user.is_authenticated and (current_user == solar_system.user or current_user.id == 1) %}
+        <center><div>
+            <a href="/add_space_object/{{ solar_system.id }}" class="btn btn-warning">
+                Добавить космический объект
+            </a>
+            <a href="/edit_system/{{ solar_system.id }}" class="btn btn-warning">
+                Изменить систему
+            </a>
+            <a href="/delete_system/{{ solar_system.id }}" class="btn btn-danger">
+                Удалить систему
+            </a>
+        </div></center>
+        {% endif %}
+        </td>
+    </tr>
+    <tr><td colspan="11" style="background-color: #FFF8DC;border:1px solid grey">
+        <center><a href="/download_file" class="btn btn-success">
+                Скачать модель Солнечной Системы
+            </a></center>
+    </td></tr>
+</table>
+</center>
+{% for item in systems %}
+<p></p>
+<center><table cellpadding="8">
+    <tr>
+        <th colspan="11" style="border:1px solid grey;background-color: #FFEBCD">
+            <center><h4>{{item.name}} ({{item.galaxy}})</h4></center>
+        </th>
+    </tr>
+    <tr>
+         <td colspan="11" style="border:1px solid grey;background-color: #FFDEAD">
+             <center>{{item.about}}</center>
+         </td>
+    </tr>
+    <tr/>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>№</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Название объекта</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Тип</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Расстояние до Звезды, а.е.</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Период обращения вокруг Звезды (в земных годах)</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Эксцентриситет</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Орбитальная скорость, км/с</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Плотность, x10^3 кг/м^3</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Ускорение свободного падения, м/с^2</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Масса (в массах Земли)</center>
+        </td>
+        <td style="background-color: #DEB887;border:1px solid grey">
+            <center>Количество спутников</center>
+        </td>
+    </tr>
+    {% for system_item in item.space_objects%}
+        <tr>
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.id}}</center>
+            </td>
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <a href="space_object/{{system_item.name}}"><center>{{system_item.name}}</center></a>
+            </td>
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.space_type}}</center>
+            </td>
+            {% if system_item.radius%}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.radius}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>–</center></td>
+            {% endif %}
+            {% if system_item.period%}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.period}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>–</center></td>
+            {% endif %}
+            {% if system_item.ex%}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.ex}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>–</center></td>
+            {% endif %}
+            {% if system_item.v%}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.v}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if system_item.p%}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.p}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if system_item.g%}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.g}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if system_item.m%}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.m}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if system_item.sputnik%}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>{{system_item.sputnik}}</center>
+            </td>
+            {% else %}
+            <td style="background-color: #FAEBD7;border:1px solid grey">
+                <center>–</center>
+            </td>
+            {% endif %}
+            {% if current_user.id == 1 or current_user == system_item.user%}
+            <td>
+                <center><a href="/delete_space_object/{{ system_item.name }}" class="btn btn-danger">
+                    X
+                </a></center>
+            </td>
+            {% endif %}
         </tr>
     {% endfor %}
     <tr>
@@ -146,6 +313,9 @@
             </a>
             <a href="/edit_system/{{ item.id }}" class="btn btn-warning">
                 Изменить систему
+            </a>
+            <a href="/delete_system/{{ item.id }}" class="btn btn-danger">
+                Удалить систему
             </a>
         </div></center>
         {% endif %}

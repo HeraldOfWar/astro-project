@@ -1,5 +1,100 @@
 {% extends "base.html" %}
 
 {% block content %}
-Привет!
+<table>
+    {% if space_object.image_path %}
+    <tr>
+        <td rowspan="12"><img src="{{space_object.image_path}}" alt="..."></td>
+    </tr>
+    {% endif %}
+    <tr><td style="padding-left:50px"><h1>{{space_object.name}} ({{space_object.space_system.name}})</h1></td></tr>
+    <tr><td style="padding-left:50px"><b>Тип:</b> {{space_object.space_type}}</td></tr>
+    {% if space_object.radius %}
+        <tr><td style="padding-left:50px"><b>Расстояние до Звезды:</b> {{space_object.radius}} а.е.</td></tr>
+    {% else %}
+        <tr><td style="padding-left:50px"><b>Расстояние до Звезды:</b> –</td></tr>
+    {% endif %}
+    {% if space_object.period %}
+        <tr>
+            <td style="padding-left:50px">
+                <b>Период обращения вокруг Звезды (в земных годах):</b> {{space_object.period}}
+            </td>
+        </tr>
+    {% else %}
+        <tr><td style="padding-left:50px"><b>Период обращения вокруг Звезды (в земных годах):</b> –</td></tr>
+    {% endif %}
+    {% if space_object.ex %}
+        <tr>
+            <td style="padding-left:50px">
+                <b>Эксцентриситет:</b> {{space_object.ex}}
+            </td>
+        </tr>
+    {% else %}
+        <tr><td style="padding-left:50px"><b>Эксцентриситет:</b> –</td></tr>
+    {% endif %}
+    {% if space_object.v %}
+        <tr>
+            <td style="padding-left:50px">
+                <b>Орбитальная скорость:</b> {{space_object.v}} км/с
+            </td>
+        </tr>
+    {% else %}
+        <tr><td style="padding-left:50px"><b>Орбитальная скорость:</b> –</td></tr>
+    {% endif %}
+    {% if space_object.p %}
+        <tr>
+            <td style="padding-left:50px">
+                <b>Плотность:</b> {{space_object.p}}x10^3 кг/м^3
+            </td>
+        </tr>
+    {% else %}
+        <tr><td style="padding-left:50px"><b>Плотность:</b> –</td></tr>
+    {% endif %}
+    {% if space_object.g %}
+        <tr>
+            <td style="padding-left:50px">
+                <b>Ускорение свободного падения:</b> {{space_object.g}} м/с^2
+            </td>
+        </tr>
+    {% else %}
+        <tr><td style="padding-left:50px"><b>Ускорение свободного падения:</b> –</td></tr>
+    {% endif %}
+    {% if space_object.m %}
+        <tr>
+            <td style="padding-left:50px">
+                <b>Масса (в массах Земли):</b> {{space_object.m}}
+            </td>
+        </tr>
+    {% else %}
+        <tr><td style="padding-left:50px"><b>Масса (в массах Земли):</b> –</td></tr>
+    {% endif %}
+    {% if space_object.sputnik %}
+        <tr>
+            <td style="padding-left:50px">
+                <b>Количество спутников:</b> {{space_object.sputnik}}
+            </td>
+        </tr>
+    {% else %}
+        <tr><td style="padding-left:50px"><b>Количество спутников:</b> –</td></tr>
+    {% endif %}
+    <tr><td style="padding-left:50px;padding-top:10px">
+        <div>
+            <a href="/edit_space_object/{{ space_object.name }}" class="btn btn-warning">
+                Изменить
+            </a>
+            {% if current_user.id == 1 %}
+            <a href="/delete_space_object/{{ space_object.name }}" class="btn btn-danger">
+                Удалить
+            </a>
+            {% endif %}
+        </div>
+    </td></tr>
+</table>
+<div style="margin-top:10px"></div>
+<hr>
+<p></p>
+<h1>Атмосфера:</h1>
+<p>{{space_object.atmosphere}}</p>
+<h1>Описание:</h1>
+<p>{{space_object.about}}</p>
 {% endblock %}

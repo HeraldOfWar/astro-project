@@ -17,7 +17,7 @@ class SpaceObjectsResource(Resource):
                     space_object.to_dict(
                         only=(
                             'name', 'space_type', 'radius', 'period', 'ex', 'v', 'p', 'g',
-                            'm', 'sputnik', 'atmosphere', 'about', 'user.name'))
+                            'm', 'sputnik', 'atmosphere', 'about', 'user.name', 'image_path'))
             }
         )
 
@@ -62,7 +62,7 @@ class SpaceObjectsListResource(Resource):
                     [item.to_dict(
                         only=(
                             'name', 'space_type', 'radius', 'period', 'ex', 'v', 'p', 'g',
-                            'm', 'sputnik', 'atmosphere', 'about', 'user.name'))
+                            'm', 'sputnik', 'atmosphere', 'about', 'user.name', 'image_path'))
                         for item in space_objects]
             }
         )

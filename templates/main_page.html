@@ -1,17 +1,16 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Записки астрономов</h1>
-<a href="database" class="btn btn-secondary">–> База данных</a>
+<center><h1>Записки астрономов</h1></center>
 {% if current_user.is_authenticated %}
-    <a href="add_news" class="btn btn-secondary">Добавить запись</a>
+    <center><a href="add_news" class="btn btn-secondary">Добавить запись</a></center>
 {% endif %}
 {% for item in news%}
-<div class="card" style="margin-top:10px;width: 50rem;">
+<center><div class="card" style="margin-top:10px;width: 50rem;">
     {% if item.photo_path %}
     <img src="{{item.photo_path}}" class="card-img-top" alt="...">
     {% endif %}
-    <div class="card-body">
+    <center><div class="card-body">
         <h5 class="card-title">{{item.title}} <img src="{{ avatars.robohash(item.user.username, size=28) }}"
                              class="rounded-circle border border-dark" alt="..."></h5>
         <p class="card-text">{{item.content}}</p>
@@ -29,7 +28,7 @@
             Автор – {{item.user.name}} {{item.user.surname}}, Дата написания –
             {{item.created_date.strftime('%d.%m.%Y, %H:%M')}}
         </div>
-    </div>
-</div>
+    </div></center>
+</div></center>
 {% endfor %}
 {% endblock %}

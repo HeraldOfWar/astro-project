@@ -10,7 +10,7 @@ class SpaceObject(SqlAlchemyBase, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    name = sqlalchemy.Column(sqlalchemy.String, nullable=True, unique=True)
     space_type = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     radius = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     period = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
@@ -22,6 +22,7 @@ class SpaceObject(SqlAlchemyBase, SerializerMixin):
     sputnik = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     atmosphere = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     about = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    image_path = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     system = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("space_systems.id"))
     creator = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey("users.id"))
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,

@@ -4,5 +4,6 @@ Flask==2.1.1
 Flask-WTF==1.0.1
 Flask-RESTful==0.3.9
 Flask-Login==0.6.0
+Flask-Avatars==0.2.2
 alembic==1.7.7
 PyQt5==5.15.6

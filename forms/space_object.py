@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, TextAreaField, IntegerField, SubmitField, FloatField
 from wtforms.validators import DataRequired
 
@@ -16,4 +17,5 @@ class SpaceObjectForm(FlaskForm):
     sputnik = IntegerField('Количество спутников')
     atmosphere = TextAreaField('Описание атмосферы (если есть)')
     about = TextAreaField('Общее описание')
+    image = FileField('Фото', validators=[FileAllowed(['png', 'jpg', 'jpeg'], 'Только png и jpg!')])
     submit = SubmitField('Добавить')

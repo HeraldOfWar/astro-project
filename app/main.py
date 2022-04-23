@@ -1,8 +1,11 @@
 import sys
+import webbrowser
 from PyQt5.QtCore import QPropertyAnimation
 from PyQt5.QtGui import QPainterPath, QPainter
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from main_window import Ui_MainWindow
+
+OBJECTS_NAMES = ['Солнце', 'Меркурий', 'Венера', 'Земля', 'Марс', 'Юпитер', 'Сатурн', 'Уран', 'Нептун', 'Плутон']
 
 
 class ModelSolarSystem(QMainWindow, Ui_MainWindow):
@@ -86,7 +89,12 @@ class ModelSolarSystem(QMainWindow, Ui_MainWindow):
 
     # открываем страницу в браузере с информацией об объекте Солнечной системы
     def show_info(self):
-        pass
+        view = self.sender().objectName()
+        for i in range(len(self.solar_views)):
+            if self.solar_views[i].objectName() == view:
+                url = f'https://astrocat.herokuapp.com/space_object/{OBJECTS_NAMES[i]}'
+                webbrowser.open(url)
+                break
 
 
 if __name__ == '__main__':
