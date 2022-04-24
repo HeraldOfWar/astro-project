@@ -11,4 +11,4 @@ class NewsForm(FlaskForm):
     content = TextAreaField("Содержание")
     photo = FileField('Изображение', validators=[FileAllowed(['png', 'jpg', 'jpeg'], 'Только png и jpg!')])
     is_private = BooleanField("Личное")
-    submit = SubmitField('Создать')
+    submit = SubmitField('Опубликовать')

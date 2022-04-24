@@ -19,4 +19,4 @@ class SpaceObjectForm(FlaskForm):
     atmosphere = TextAreaField('Описание атмосферы (если есть)')
     about = TextAreaField('Общее описание')
     image = FileField('Фото', validators=[FileAllowed(['png', 'jpg', 'jpeg'], 'Только png и jpg!')])
-    submit = SubmitField('Добавить')
+    submit = SubmitField('Создать')

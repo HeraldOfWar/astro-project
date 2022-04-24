@@ -8,4 +8,4 @@ class SpaceSystemForm(FlaskForm):
     name = StringField('Название', validators=[DataRequired()])
     galaxy = StringField("Галактика")
     about = TextAreaField('Описание')
-    submit = SubmitField('Добавить')
+    submit = SubmitField('Создать')
