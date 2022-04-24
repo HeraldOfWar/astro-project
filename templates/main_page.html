@@ -26,7 +26,7 @@
         </div>
         {% endif %}
         <div style="margin-top:10px">
-            Автор – {{item.user.name}} {{item.user.surname}}, Дата написания –
+            Автор – <a href="/user/{{item.user.username}}">{{item.user.name}} {{item.user.surname}}</a>, Дата написания –
             {{item.created_date.strftime('%d.%m.%Y, %H:%M')}}
         </div>
     </div></center>
