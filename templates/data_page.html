@@ -146,7 +146,7 @@
     {% endfor %}
     <tr>
         <td colspan="11" style="background-color: #FFF8DC;border:1px solid grey">
-        {% if current_user.is_authenticated and (current_user == solar_system.user or current_user.id == 1) %}
+        {% if current_user.is_authenticated %}
         <center><div>
             <a href="/add_space_object/{{ solar_system.id }}" class="btn btn-warning">
                 Добавить космический объект

@@ -20,7 +20,7 @@ app.config['NEWS_PHOTO_FOLDER'] = 'img/news_photos/'  # путь к ресурс
 login_manager = LoginManager()  # для авторизации
 login_manager.init_app(app)  # инициализация в приложении
 api = Api(app)  # создание api-ресурса
-"""Добавление всех ресурсов моделей со ссылками"""
+"""Добавление ресурсов всех моделей со ссылками"""
 api.add_resource(user_resources.UsersListResource, '/api/users')
 api.add_resource(user_resources.UsersResource, '/api/users/<int:user_id>')
 api.add_resource(news_resources.NewsListResource, '/api/news')
@@ -35,7 +35,7 @@ avatars = Avatars(app)  # для удобной работы с аватарка
 def main():
     """Запуск приложения"""
     db_session.global_init("db/astro-project.db")  # объявление базы данных
-    port = int(os.environ.get("PORT", 5000))  # порт
+    port = int(os.environ.get("PORT", 8080))  # порт
     app.run(host='0.0.0.0', port=port)  # запуск
 
 
@@ -101,28 +101,28 @@ def reqister():
     """Страница с формой регистрации"""
     form = RegisterForm()
     if form.validate_on_submit():
-        if form.password.data != form.password_again.data:
+        if form.password.data.strip() != form.password_again.data.strip():
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Пароли не совпадают!")
         db_sess = db_session.create_session()
-        if db_sess.query(User).filter(User.email == form.email.data).first():
+        if db_sess.query(User).filter(User.email == form.email.data.strip()).first():
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Такой пользователь уже есть!")
-        if db_sess.query(User).filter(User.username == form.username.data).first():
+        if db_sess.query(User).filter(User.username == form.username.data.strip()).first():
             return render_template('register.html', title='Регистрация',
                                    form=form,
                                    message="Логин занят!")
         user = User(
-            username=form.username.data,
-            name=form.name.data,
-            surname=form.surname.data,
-            email=form.email.data,
+            username=form.username.data.strip(),
+            name=form.name.data.strip(),
+            surname=form.surname.data.strip(),
+            email=form.email.data.strip(),
             age=form.age.data,
-            about=form.about.data
+            about=form.about.data.strip()
         )  # создание пользователя
-        user.set_password(form.password.data)  # хэширование пароля
+        user.set_password(form.password.data.strip())  # хэширование пароля
         db_sess.add(user)  # добавление пользователя
         db_sess.commit()  # подтверждение изменений
         return redirect('/login')
@@ -135,8 +135,9 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query(User).filter((User.email == form.login.data) | (User.username == form.login.data)).first()
-        if user and user.check_password(form.password.data):
+        user = db_sess.query(User).filter(
+            (User.email == form.login.data.strip()) | (User.username == form.login.data.strip())).first()
+        if user and user.check_password(form.password.data.strip()):
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
         return render_template('login.html',
@@ -153,8 +154,8 @@ def add_news():
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         news = News()
-        news.title = form.title.data
-        news.content = form.content.data
+        news.title = form.title.data.strip()
+        news.content = form.content.data.strip()
         news.is_private = form.is_private.data
         file = form.photo.data  # загрузка файла (изображения)
         if file:
@@ -180,8 +181,8 @@ def edit_news(id):
                                           News.user == current_user
                                           ).first()
         if news:
-            form.title.data = news.title
-            form.content.data = news.content
+            form.title.data = news.title.strip()
+            form.content.data = news.content.strip()
             form.is_private.data = news.is_private
         else:
             abort(404)
@@ -191,13 +192,11 @@ def edit_news(id):
                                           News.user == current_user
                                           ).first()
         if news:
-            news.title = form.title.data
-            news.content = form.content.data
+            news.title = form.title.data.strip()
+            news.content = form.content.data.strip()
             news.is_private = form.is_private.data
             file = form.photo.data
             if file:
-                if news.photo_path:
-                    os.remove(news.photo_path)
                 filename = secure_filename(file.filename)
                 news.photo_path = url_for('static', filename=app.config['NEWS_PHOTO_FOLDER'] + filename)
                 file.save(f'static/img/news_photos/{filename}')
@@ -221,8 +220,6 @@ def delete_news(id):
                                       ).first()
     if news:
         user = news.user
-        if news.photo_path:  # если было изображение
-            os.remove(news.photo_path)  # удаляем
         db_sess.delete(news)  # удаление
         db_sess.commit()
         return redirect(f'/user/{user.username}')
@@ -237,18 +234,18 @@ def add_system():
     form = SpaceSystemForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        if db_sess.query(SpaceSystem).filter(SpaceSystem.name == form.name.data).first():
+        if db_sess.query(SpaceSystem).filter(SpaceSystem.name == form.name.data.strip()).first():
             return render_template('space_system.html', title='AstroCat',
                                    form=form,
                                    message="Такая система уже есть!")
         system = SpaceSystem()
-        system.name = form.name.data
-        system.galaxy = form.galaxy.data
-        system.about = form.about.data
+        system.name = form.name.data.strip()
+        system.galaxy = form.galaxy.data.strip()
+        system.about = form.about.data.strip()
         current_user.space_systems.append(system)
         db_sess.merge(current_user)
         db_sess.commit()
-        os.mkdir(f'static/img/{system.name}')  # создание папки для изображение космических объектов системы
+        os.mkdir(f'static/img/{system.name}')  # создание папки для изображения космических объектов системы
         return redirect('/database')
     return render_template('space_system.html', title='AstroCat',
                            form=form)
@@ -263,23 +260,24 @@ def edit_system(id):
         db_sess = db_session.create_session()
         system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == id).first()
         if system:
-            form.name.data = system.name
-            form.galaxy.data = system.galaxy
-            form.about.data = system.about
+            form.name.data = system.name.strip()
+            form.galaxy.data = system.galaxy.strip()
+            form.about.data = system.about.strip()
         else:
             abort(404)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         system = db_sess.query(SpaceSystem).filter(SpaceSystem.id == id).first()
         if system:
-            if db_sess.query(SpaceSystem).filter(SpaceSystem.name == form.name.data).first():
+            new_system = db_sess.query(SpaceSystem).filter(SpaceSystem.name == form.name.data.strip()).first()
+            if new_system and new_system != new_system:
                 return render_template('space_system.html', title='AstroCat',
                                        form=form,
                                        message="Такая система уже есть!")
             os.rename(f'static/img/{system.name}', f'static/img/{form.name.data}')  # переименовываем папку
-            system.name = form.name.data
-            system.galaxy = form.galaxy.data
-            system.about = form.about.data
+            system.name = form.name.data.strip()
+            system.galaxy = form.galaxy.data.strip()
+            system.about = form.about.data.strip()
             db_sess.commit()
             return redirect('/database')
         else:
@@ -299,7 +297,6 @@ def delete_system(id):
                                                (SpaceSystem.user == current_user) | (current_user.id == 1)
                                                ).first()
     if system:
-        os.rmdir(f'static/img/{system.name}')
         db_sess.delete(system)
         db_sess.commit()
         return redirect('/database')
@@ -319,8 +316,8 @@ def add_space_object(id):
                                    form=form,
                                    message="Такой объект уже есть!")
         space_object = SpaceObject()
-        space_object.name = form.name.data
-        space_object.space_type = form.space_type.data
+        space_object.name = form.name.data.strip()
+        space_object.space_type = form.space_type.data.strip()
         space_object.radius = form.radius.data
         space_object.period = form.period.data
         space_object.ex = form.ex.data
@@ -329,8 +326,8 @@ def add_space_object(id):
         space_object.g = form.g.data
         space_object.m = form.m.data
         space_object.sputnik = form.sputnik.data
-        space_object.atmosphere = form.atmosphere.data
-        space_object.about = form.about.data
+        space_object.atmosphere = form.atmosphere.data.strip()
+        space_object.about = form.about.data.strip()
         space_object.system = id
         current_user.space_objects.append(space_object)
         db_sess.merge(current_user)
@@ -349,8 +346,8 @@ def edit_space_object(name):
         db_sess = db_session.create_session()
         space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name).first()
         if space_object:
-            form.name.data = space_object.name
-            form.space_type.data = space_object.space_type
+            form.name.data = space_object.name.strip()
+            form.space_type.data = space_object.space_type.strip()
             form.radius.data = space_object.radius
             form.period.data = space_object.period
             form.ex.data = space_object.ex
@@ -359,20 +356,21 @@ def edit_space_object(name):
             form.g.data = space_object.g
             form.m.data = space_object.m
             form.sputnik.data = space_object.sputnik
-            form.atmosphere.data = space_object.atmosphere
-            form.about.data = space_object.about
+            form.atmosphere.data = space_object.atmosphere.strip()
+            form.about.data = space_object.about.strip()
         else:
             abort(404)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == name).first()
         if space_object:
-            if db_sess.query(SpaceObject).filter(SpaceObject.name == form.name.data).first():
+            new_space_object = db_sess.query(SpaceObject).filter(SpaceObject.name == form.name.data.strip()).first()
+            if new_space_object and new_space_object != space_object:
                 return render_template('space_object.html', title='AstroCat',
                                        form=form,
                                        message="Такой объект уже есть!")
-            space_object.name = form.name.data
-            space_object.space_type = form.space_type.data
+            space_object.name = form.name.data.strip()
+            space_object.space_type = form.space_type.data.strip()
             space_object.radius = form.radius.data
             space_object.period = form.period.data
             space_object.ex = form.ex.data
@@ -381,19 +379,16 @@ def edit_space_object(name):
             space_object.g = form.g.data
             space_object.m = form.m.data
             space_object.sputnik = form.sputnik.data
-            space_object.atmosphere = form.atmosphere.data
-            space_object.about = form.about.data
+            space_object.atmosphere = form.atmosphere.data.strip()
+            space_object.about = form.about.data.strip()
             file = form.image.data
             if file:
                 filename = secure_filename(file.filename)
                 if space_object.space_system.id == 1:
-                    if space_object.image_path:
-                        os.remove(space_object.image_path)
                     space_object.image_path = url_for('static',
                                                       filename='img/solar_img/' + filename)
                     file.save(f'static/img/solar_img/{filename}')
                 else:
-                    os.remove(space_object.image_path)
                     space_object.image_path = url_for('static',
                                                       filename=f'img/{space_object.space_system.name}' + filename)
                     file.save(f'static/img/{space_object.space_system.name}/{filename}')
@@ -416,8 +411,6 @@ def delete_space_object(name):
                                                (SpaceObject.user == current_user) | (current_user.id == 1)
                                                ).first()
     if space_object:
-        if space_object.image_path:
-            os.remove(space_object.image_path)
         db_sess.delete(space_object)
         db_sess.commit()
         return redirect('/database')
@@ -434,27 +427,27 @@ def edit_user(username):
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.username == username).first()
         if user:
-            form.username.data = user.username
-            form.name.data = user.name
-            form.surname.data = user.surname
+            form.username.data = user.username.strip()
+            form.name.data = user.name.strip()
+            form.surname.data = user.surname.strip()
             form.age.data = user.age
-            form.about.data = user.about
+            form.about.data = user.about.strip()
         else:
             abort(404)
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.username == username).first()
         if user:
-            new_user = db_sess.query(User).filter(User.username == form.username.data).first()
+            new_user = db_sess.query(User).filter(User.username == form.username.data.strip()).first()
             if new_user and new_user != user:
                 return render_template('user.html', title='AstroCat',
                                        form=form,
                                        message="Логин занят!")
-            user.username = form.username.data
-            user.name = form.name.data
-            user.surname = form.surname.data
+            user.username = form.username.data.strip()
+            user.name = form.name.data.strip()
+            user.surname = form.surname.data.strip()
             user.age = form.age.data
-            user.about = form.about.data
+            user.about = form.about.data.strip()
             db_sess.commit()
             return redirect(f'/user/{user.username}')
         else:
