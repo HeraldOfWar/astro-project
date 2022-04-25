@@ -249,9 +249,10 @@ def add_system():
         current_user.space_systems.append(system)
         db_sess.merge(current_user)
         db_sess.commit()
+        db_sess = db_session.create_session()
+        new_system = db_sess.query(SpaceSystem).filter(SpaceSystem.name == system.name).first()
         os.mkdir(
-            f'static/img/system_{len(db_sess.query(SpaceSystem).all()) + 1}')
-        # создание папки для изображения космических объектов системы
+            f'static/img/system_{new_system.id}')  # создание папки для изображения космических объектов системы
         return redirect('/database')
     return render_template('space_system.html', title='AstroCat',
                            form=form)
@@ -302,6 +303,10 @@ def delete_system(id):
                                                (SpaceSystem.user == current_user) | (current_user.id == 1)
                                                ).first()
     if system:
+        for space_object in system.space_objects:
+            if space_object.image_path:
+                os.remove(space_object.image_path[1:])
+            db_sess.delete(space_object)
         os.rmdir(f'static/img/system_{system.id}')
         db_sess.delete(system)
         db_sess.commit()
@@ -335,6 +340,17 @@ def add_space_object(id):
         space_object.atmosphere = form.atmosphere.data.strip()
         space_object.about = form.about.data.strip()
         space_object.system = id
+        file = form.image.data
+        if file:
+            filename = secure_filename(file.filename)
+            if id == 1:
+                space_object.image_path = url_for('static',
+                                                  filename='img/solar_img/' + filename)
+                file.save(f'static/img/solar_img/{filename}')
+            else:
+                space_object.image_path = url_for('static',
+                                                  filename=f'img/system_{id}/' + filename)
+                file.save(f'static/img/system_{id}/{filename}')
         current_user.space_objects.append(space_object)
         db_sess.merge(current_user)
         db_sess.commit()
@@ -400,8 +416,8 @@ def edit_space_object(name):
                     if space_object.image_path:
                         os.remove(space_object.image_path[1:])
                     space_object.image_path = url_for('static',
-                                                      filename=f'img/{space_object.space_system.name}' + filename)
-                    file.save(f'static/img/{space_object.space_system.name}/{filename}')
+                                                      filename=f'img/system_{space_object.space_system.id}/' + filename)
+                    file.save(f'static/img/system_{space_object.space_system.id}/{filename}')
             db_sess.commit()
             return redirect(f'/space_object/{space_object.name}')
         else:
