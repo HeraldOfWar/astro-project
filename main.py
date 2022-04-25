@@ -249,7 +249,9 @@ def add_system():
         current_user.space_systems.append(system)
         db_sess.merge(current_user)
         db_sess.commit()
-        os.mkdir(f'static/img/system_{system.id}')  # создание папки для изображения космических объектов системы
+        os.mkdir(
+            f'static/img/system_{len(db_sess.query(SpaceSystem).all()) + 1}')
+        # создание папки для изображения космических объектов системы
         return redirect('/database')
     return render_template('space_system.html', title='AstroCat',
                            form=form)
