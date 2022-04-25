@@ -249,7 +249,7 @@ def add_system():
         current_user.space_systems.append(system)
         db_sess.merge(current_user)
         db_sess.commit()
-        os.mkdir(f'static/img/{system.name}')  # создание папки для изображения космических объектов системы
+        os.mkdir(f'static/img/system_{system.id}')  # создание папки для изображения космических объектов системы
         return redirect('/database')
     return render_template('space_system.html', title='AstroCat',
                            form=form)
@@ -278,7 +278,6 @@ def edit_system(id):
                 return render_template('space_system.html', title='AstroCat',
                                        form=form,
                                        message="Такая система уже есть!")
-            os.rename(f'static/img/{system.name}', f'static/img/{form.name.data.strip()}')  # переименовываем папку
             system.name = form.name.data.strip()
             system.galaxy = form.galaxy.data.strip()
             system.about = form.about.data.strip()
@@ -301,7 +300,7 @@ def delete_system(id):
                                                (SpaceSystem.user == current_user) | (current_user.id == 1)
                                                ).first()
     if system:
-        os.rmdir(f'static/img/{system.name}')
+        os.rmdir(f'static/img/system_{system.id}')
         db_sess.delete(system)
         db_sess.commit()
         return redirect('/database')
